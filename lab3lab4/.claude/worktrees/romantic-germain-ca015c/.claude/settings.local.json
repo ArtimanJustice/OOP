@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"D:\\\\University\\\\OOP\\\\ShadowMaiden\\\\.claude\\\\worktrees\\\\romantic-germain-ca015c\" -Recurse -File)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(python -c \"from reportlab.lib.pagesizes import A4; print\\('reportlab ok'\\)\")",
+      "PowerShell(Get-Command python, python3, py -ErrorAction SilentlyContinue)",
+      "PowerShell($env:PATH -split \";\" | Where-Object { $_ -match \"python\" -or $_ -match \"conda\" -or $_ -match \"anaconda\" })",
+      "PowerShell(New-Item -ItemType Directory -Path \"$env:TEMP\\\\pdf_gen\" -Force | Out-Null; Set-Location \"$env:TEMP\\\\pdf_gen\"; npm init -y 2>&1 | Select-Object -Last 3)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp"
+    ]
+  }
+}

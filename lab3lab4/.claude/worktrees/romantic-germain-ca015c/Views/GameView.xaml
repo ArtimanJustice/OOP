@@ -1,0 +1,93 @@
+<Window x:Class="ShadowMaiden.Views.GameView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ShadowMaiden.ViewModels"
+        Title="Shadow Maiden"
+        Background="#0f0f1e"
+        Width="820" Height="650"
+        WindowStartupLocation="CenterScreen"
+        KeyDown="Window_KeyDown"
+        ResizeMode="CanMinimize">
+
+    <Window.DataContext>
+        <vm:GameViewModel />
+    </Window.DataContext>
+
+    <Window.Resources>
+        <vm:StringToBrushConverter x:Key="StringToBrush" />
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    </Window.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="Shadow Maiden"
+                   FontSize="28"
+                   FontWeight="Bold"
+                   Foreground="#FFD700"
+                   HorizontalAlignment="Center"
+                   Margin="0,0,0,10"
+                   FontFamily="Segoe UI" />
+
+        <ItemsControl Grid.Row="1"
+                      ItemsSource="{Binding Cells}"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="{Binding FieldWidth}"
+                                 Rows="{Binding FieldHeight}" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Width="32" Height="32"
+                            Background="{Binding Background, Converter={StaticResource StringToBrush}}"
+                            BorderBrush="#2a2a3e"
+                            BorderThickness="0.5">
+                        <TextBlock Text="{Binding Text}"
+                                   Foreground="{Binding Foreground, Converter={StaticResource StringToBrush}}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontSize="18"
+                                   FontWeight="Bold" />
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <TextBlock Grid.Row="2"
+                   Text="{Binding PlayerStats}"
+                   FontSize="16"
+                   Foreground="#00FF00"
+                   HorizontalAlignment="Center"
+                   Margin="0,10,0,5"
+                   FontFamily="Consolas" />
+
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,5">
+            <TextBlock Text="{Binding GameMessage}"
+                       FontSize="14"
+                       Foreground="#FFD700"
+                       VerticalAlignment="Center"
+                       Margin="0,0,15,0" />
+            <Button Content="Restart"
+                    Command="{Binding RestartCommand}"
+                    Visibility="{Binding IsGameOver, Converter={StaticResource BoolToVisibility}}"
+                    Padding="15,5"
+                    FontSize="14"
+                    Background="#4a4a5e"
+                    Foreground="White"
+                    BorderBrush="#FFD700"
+                    Cursor="Hand" />
+        </StackPanel>
+    </Grid>
+</Window>
