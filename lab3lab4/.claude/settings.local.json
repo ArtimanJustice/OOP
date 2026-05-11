@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "WebFetch(domain:oop-nure.notion.site)",
-      "Bash(dotnet build *)"
-    ]
-  }
-}

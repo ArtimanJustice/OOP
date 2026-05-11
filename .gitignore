@@ -1,0 +1,25 @@
+# Build output
+bin/
+obj/
+
+# JetBrains Rider / Visual Studio
+.idea/
+.vs/
+*.user
+*.suo
+*.userprefs
+*.sln.iml
+
+# Claude Code local settings
+.claude/
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
