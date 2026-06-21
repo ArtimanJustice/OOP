@@ -6,36 +6,63 @@ namespace ShadowMaiden.Services;
 
 public static class CellRenderer
 {
+    private const string DefaultBg = "#1a1a2e";
+    private const string DefaultFg = "#ffffff";
+    private const string WallBg = "#252535";
+    private const string DoorBg = "#5C2D00";
+    private const string DoorFg = "#CD853F";
+    private const string ExitBg = "#003322";
+    private const string ExitFg = "#00FF88";
+    private const string SwordFg = "#00BFFF";
+    private const string PotionFg = "#FF69B4";
+    private const string KeyFg = "#FFD700";
+    private const string SkeletonFg = "#C0C0C0";
+    private const string BatFg = "#9370DB";
+    private const string BossFg = "#FF3333";
+    private const string PlayerFg = "#FFD700";
+
+    private const string Empty = "";
+    private const string Unknown = "?";
+    private const string DoorGlyph = "▬";
+    private const string ExitGlyph = "✦";
+    private const string SwordGlyph = "⚔";
+    private const string PotionGlyph = "♥";
+    private const string KeyGlyph = "⚷";
+    private const string SkeletonGlyph = "☠";
+    private const string BatGlyph = "▼";
+    private const string BossGlyph = "◆";
+    private const string PlayerGlyph = "♀";
+
     public static void Render(GameField field, CellInfo cell)
     {
-        cell.Background = "#1a1a2e";
-        cell.Text = "";
-        cell.Foreground = "#ffffff";
+        cell.Background = DefaultBg;
+        cell.Text = Empty;
+        cell.Foreground = DefaultFg;
 
         switch (field[cell.X, cell.Y])
         {
             case Wall:
-                cell.Background = "#252535";
+                cell.Background = WallBg;
                 var flyingEnemy =
                     field.Enemies.FirstOrDefault(e => e.CanFly && e.X == cell.X && e.Y == cell.Y && e.IsAlive);
                 if (flyingEnemy != null)
                     (cell.Text, cell.Foreground) = flyingEnemy.Type switch
                     {
-                        ElementType.Bat => ("▼", "#9370DB"),
-                        _ => ("?", "#ffffff")
+                        ElementType.Bat => (BatGlyph, BatFg),
+                        _ => (Unknown, DefaultFg)
                     };
                 return;
             case Door { IsOpen: false }:
-                cell.Background = "#5C2D00";
-                cell.Text = "▬";
-                cell.Foreground = "#CD853F";
+                cell.Background = DoorBg;
+                cell.Text = DoorGlyph;
+                cell.Foreground = DoorFg;
                 return;
             case Door { IsOpen: true }:
                 return;
             case Exit:
-                cell.Background = "#003322";
-                cell.Text = "✦";
-                cell.Foreground = "#00FF88";
+                cell.Background = ExitBg;
+                cell.Text = ExitGlyph;
+                cell.Foreground = ExitFg;
                 break;
         }
 
@@ -43,26 +70,26 @@ public static class CellRenderer
         if (item != null)
             (cell.Text, cell.Foreground) = item.Type switch
             {
-                ElementType.Sword => ("⚔", "#00BFFF"),
-                ElementType.Potion => ("♥", "#FF69B4"),
-                ElementType.Key => ("⚷", "#FFD700"),
-                _ => ("?", "#ffffff")
+                ElementType.Sword => (SwordGlyph, SwordFg),
+                ElementType.Potion => (PotionGlyph, PotionFg),
+                ElementType.Key => (KeyGlyph, KeyFg),
+                _ => (Unknown, DefaultFg)
             };
 
         var enemy = field.Enemies.FirstOrDefault(e => e.X == cell.X && e.Y == cell.Y && e.IsAlive);
         if (enemy != null)
             (cell.Text, cell.Foreground) = enemy.Type switch
             {
-                ElementType.Skeleton => ("☠", "#C0C0C0"),
-                ElementType.Bat => ("▼", "#9370DB"),
-                ElementType.Boss => ("◆", "#FF3333"),
-                _ => ("?", "#ffffff")
+                ElementType.Skeleton => (SkeletonGlyph, SkeletonFg),
+                ElementType.Bat => (BatGlyph, BatFg),
+                ElementType.Boss => (BossGlyph, BossFg),
+                _ => (Unknown, DefaultFg)
             };
 
         if (field.Player.X == cell.X && field.Player.Y == cell.Y)
         {
-            cell.Text = "♀";
-            cell.Foreground = "#FFD700";
+            cell.Text = PlayerGlyph;
+            cell.Foreground = PlayerFg;
         }
     }
 }

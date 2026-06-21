@@ -18,7 +18,6 @@
         <vm:StringToBrushConverter x:Key="StringToBrush" />
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
 
-        <!-- Label above a stat value -->
         <Style x:Key="StatLabel" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Consolas" />
             <Setter Property="FontSize" Value="11" />
@@ -27,7 +26,6 @@
             <Setter Property="Margin" Value="0,10,0,2" />
         </Style>
 
-        <!-- Stat value -->
         <Style x:Key="StatValue" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Consolas" />
             <Setter Property="FontSize" Value="20" />
@@ -35,14 +33,12 @@
             <Setter Property="FontWeight" Value="Bold" />
         </Style>
 
-        <!-- Small hint text -->
         <Style x:Key="HintText" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Consolas" />
             <Setter Property="FontSize" Value="12" />
             <Setter Property="Foreground" Value="#505080" />
         </Style>
 
-        <!-- HP progress bar with dungeon-style look -->
         <Style x:Key="HpBar" TargetType="ProgressBar">
             <Setter Property="Height" Value="14" />
             <Setter Property="Margin" Value="0,4,0,4" />
@@ -63,7 +59,6 @@
             </Setter>
         </Style>
 
-        <!-- Sidebar action button -->
         <Style x:Key="ActionButton" TargetType="Button">
             <Setter Property="FontFamily" Value="Consolas" />
             <Setter Property="FontSize" Value="13" />
@@ -105,7 +100,6 @@
             <ColumnDefinition Width="200" />
         </Grid.ColumnDefinitions>
 
-        <!-- ══════════════════ LEFT: game area ══════════════════ -->
         <Grid Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -113,7 +107,6 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- Title -->
             <TextBlock Grid.Row="0"
                        Text="SHADOW MAIDEN"
                        FontFamily="Consolas"
@@ -123,7 +116,6 @@
                        HorizontalAlignment="Center"
                        Margin="0,0,0,10" />
 
-            <!-- Game grid -->
             <ScrollViewer Grid.Row="1"
                           HorizontalScrollBarVisibility="Auto"
                           VerticalScrollBarVisibility="Auto"
@@ -156,7 +148,6 @@
                 </ItemsControl>
             </ScrollViewer>
 
-            <!-- Message bar -->
             <Border Grid.Row="2" Background="#13132a" CornerRadius="4" Margin="0,8,0,0" Padding="12,6">
                 <TextBlock Text="{Binding GameMessage}"
                            FontFamily="Consolas"
@@ -166,7 +157,6 @@
             </Border>
         </Grid>
 
-        <!-- ══════════════════ RIGHT: sidebar ══════════════════ -->
         <Border Grid.Column="1"
                 Background="#13132a"
                 CornerRadius="8"
@@ -174,7 +164,6 @@
                 Padding="16,14">
             <StackPanel>
 
-                <!-- Branding -->
                 <TextBlock Text="SHADOW"
                            FontFamily="Consolas" FontSize="18" FontWeight="Bold"
                            Foreground="#FFD700" />
@@ -184,11 +173,9 @@
 
                 <Rectangle Height="1" Fill="#2a2a4a" Margin="0,12,0,0" />
 
-                <!-- Level -->
                 <TextBlock Text="LEVEL" Style="{StaticResource StatLabel}" />
                 <TextBlock Text="{Binding LevelDisplay}" Style="{StaticResource StatValue}" />
 
-                <!-- HP -->
                 <TextBlock Text="HP" Style="{StaticResource StatLabel}" />
                 <ProgressBar Style="{StaticResource HpBar}"
                              Value="{Binding PlayerHp, Mode=OneWay}"
@@ -198,7 +185,6 @@
                     <Run Text="{Binding PlayerMaxHp, Mode=OneWay}" />
                 </TextBlock>
 
-                <!-- ATK -->
                 <TextBlock Text="ATTACK" Style="{StaticResource StatLabel}" />
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="{Binding PlayerAttack}" Style="{StaticResource StatValue}" />
@@ -206,7 +192,6 @@
                                Foreground="#00BFFF" VerticalAlignment="Bottom" Margin="4,0,0,2" />
                 </StackPanel>
 
-                <!-- Keys -->
                 <TextBlock Text="KEYS" Style="{StaticResource StatLabel}" />
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="{Binding PlayerKeys}" Style="{StaticResource StatValue}" />
@@ -216,7 +201,6 @@
 
                 <Rectangle Height="1" Fill="#2a2a4a" Margin="0,16,0,0" />
 
-                <!-- Controls -->
                 <TextBlock Text="CONTROLS" Style="{StaticResource StatLabel}" Margin="0,12,0,6" />
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -243,7 +227,6 @@
 
                 <Rectangle Height="1" Fill="#2a2a4a" Margin="0,16,0,12" />
 
-                <!-- Legend -->
                 <TextBlock Text="LEGEND" Style="{StaticResource StatLabel}" Margin="0,0,0,6" />
                 <StackPanel Orientation="Horizontal" Margin="0,2">
                     <TextBlock Text="♀" FontFamily="Segoe UI Symbol" FontSize="14" Foreground="#FFD700" Width="20" />
@@ -280,12 +263,10 @@
 
                 <Rectangle Height="1" Fill="#2a2a4a" Margin="0,16,0,12" />
 
-                <!-- Restart -->
                 <Button Content="RESTART"
                         Command="{Binding RestartCommand}"
                         Style="{StaticResource ActionButton}" />
 
-                <!-- Victory / Game Over badge -->
                 <Border Margin="0,10,0,0" CornerRadius="4" Padding="8,6"
                         Visibility="{Binding IsGameOver, Converter={StaticResource BoolToVisibility}}">
                     <Border.Style>

@@ -11,8 +11,11 @@ public static class LevelLoader
     {
         var path = Path.Combine(
             AppDomain.CurrentDomain.BaseDirectory, "Levels", $"level{levelNumber}.txt");
-        var lines = File.ReadAllLines(path);
+        return Build(File.ReadAllLines(path));
+    }
 
+    public static GameField Build(string[] lines)
+    {
         var height = lines.Length;
         var width = lines.Max(l => l.Length);
         var field = new GameField(width, height);
@@ -23,47 +26,36 @@ public static class LevelLoader
             {
                 var c = x < lines[y].Length ? lines[y][x] : '#';
 
+                field[x, y] = c switch
+                {
+                    '#' => new Wall(x, y),
+                    'D' => new Door(x, y),
+                    'E' => new Exit(x, y),
+                    _ => new Floor(x, y)
+                };
+
                 switch (c)
                 {
-                    case '#':
-                        field[x, y] = new Wall(x, y);
-                        break;
                     case '@':
-                        field[x, y] = new Floor(x, y);
                         field.Player = new Player(x, y);
                         break;
                     case 'S':
-                        field[x, y] = new Floor(x, y);
                         field.Enemies.Add(new Skeleton(x, y));
                         break;
                     case 'B':
-                        field[x, y] = new Floor(x, y);
                         field.Enemies.Add(new Bat(x, y));
                         break;
                     case 'X':
-                        field[x, y] = new Floor(x, y);
                         field.Enemies.Add(new Boss(x, y));
                         break;
                     case 's':
-                        field[x, y] = new Floor(x, y);
                         field.Items.Add(new Sword(x, y));
                         break;
                     case 'p':
-                        field[x, y] = new Floor(x, y);
                         field.Items.Add(new Potion(x, y));
                         break;
                     case 'k':
-                        field[x, y] = new Floor(x, y);
                         field.Items.Add(new Key(x, y));
-                        break;
-                    case 'D':
-                        field[x, y] = new Door(x, y);
-                        break;
-                    case 'E':
-                        field[x, y] = new Exit(x, y);
-                        break;
-                    default:
-                        field[x, y] = new Floor(x, y);
                         break;
                 }
             }

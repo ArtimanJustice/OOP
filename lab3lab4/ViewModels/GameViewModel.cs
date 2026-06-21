@@ -14,7 +14,8 @@ public class GameViewModel : BaseViewModel
     private bool _isGameOver;
     private bool _isVictory;
 
-    public const int TotalLevels = 3;
+    public const int TotalLevels = 6;
+    private const int PresetLevels = 3;
 
     public ObservableCollection<CellInfo> Cells { get; } = [];
 
@@ -46,18 +47,12 @@ public class GameViewModel : BaseViewModel
         set => SetField(ref _isVictory, value);
     }
 
-    public ICommand MoveUpCommand { get; }
-    public ICommand MoveDownCommand { get; }
-    public ICommand MoveLeftCommand { get; }
-    public ICommand MoveRightCommand { get; }
+    public ICommand MoveCommand { get; }
     public ICommand RestartCommand { get; }
 
     public GameViewModel()
     {
-        MoveUpCommand = new RelayCommand(_ => MovePlayer(0, -1), _ => !_isGameOver);
-        MoveDownCommand = new RelayCommand(_ => MovePlayer(0, 1), _ => !_isGameOver);
-        MoveLeftCommand = new RelayCommand(_ => MovePlayer(-1, 0), _ => !_isGameOver);
-        MoveRightCommand = new RelayCommand(_ => MovePlayer(1, 0), _ => !_isGameOver);
+        MoveCommand = new RelayCommand(Move, _ => !_isGameOver);
         RestartCommand = new RelayCommand(_ => StartGame());
         StartGame();
     }
@@ -72,12 +67,13 @@ public class GameViewModel : BaseViewModel
 
     private void LoadLevel(int level)
     {
-        _field = LevelLoader.Load(level);
+        _field = level <= PresetLevels
+            ? LevelLoader.Load(level)
+            : LevelGenerator.Generate(level, TotalLevels);
         OnPropertyChanged(nameof(FieldWidth));
         OnPropertyChanged(nameof(FieldHeight));
         InitializeCells();
-        Render();
-        UpdateStats();
+        Refresh();
         GameMessage = $"Level {level} — Find the exit!";
     }
 
@@ -89,106 +85,121 @@ public class GameViewModel : BaseViewModel
             Cells.Add(new CellInfo(x, y));
     }
 
-    private void MovePlayer(int dx, int dy)
+    private void Move(object parameter)
+    {
+        var (dx, dy) = parameter switch
+        {
+            Direction.Up => (0, -1),
+            Direction.Down => (0, 1),
+            Direction.Left => (-1, 0),
+            Direction.Right => (1, 0),
+            _ => (0, 0)
+        };
+
+        if (dx != 0 || dy != 0)
+            TakeTurn(dx, dy);
+    }
+
+    private void TakeTurn(int dx, int dy)
     {
         if (_isGameOver || _field == null) return;
 
+        ResolveMove(dx, dy);
+        Refresh();
+    }
+
+    private void ResolveMove(int dx, int dy)
+    {
         int newX = _field.Player.X + dx;
         int newY = _field.Player.Y + dy;
-
         var target = _field[newX, newY];
-        switch (target)
-        {
-            case null:
-            case Wall:
-                return;
-            case Door { IsOpen: false } door:
-                if (_field.Player.Keys > 0)
-                {
-                    _field.Player.Keys--;
-                    door.IsOpen = true;
-                    GameMessage = "Door unlocked!";
-                }
-                else
-                {
-                    GameMessage = "You need a key!";
-                    Render();
-                    UpdateStats();
-                    return;
-                }
 
-                break;
+        if (!TryEnterTile(target)) return;
+        if (TryFightEnemyAt(newX, newY)) return;
+        PickUpItemAt(newX, newY);
+        if (TryTakeExit(target)) return;
+
+        StepPlayer(newX, newY);
+        MoveEnemies();
+    }
+
+    private bool TryEnterTile(GameElement target)
+    {
+        if (target is Door { IsOpen: false } door)
+        {
+            if (!door.TryOpen(_field.Player))
+            {
+                GameMessage = "You need a key!";
+                return false;
+            }
+
+            GameMessage = "Door unlocked!";
+            return true;
         }
 
-        var enemy = _field.Enemies.FirstOrDefault(e => e.X == newX && e.Y == newY && e.IsAlive);
-        if (enemy != null)
+        return target is { IsPassable: true };
+    }
+
+    private bool TryFightEnemyAt(int x, int y)
+    {
+        var enemy = _field.Enemies.FirstOrDefault(e => e.X == x && e.Y == y && e.IsAlive);
+        if (enemy == null) return false;
+
+        int selfDamage = _field.Player.Hp / 2;
+        _field.Player.TakeDamage(selfDamage);
+        enemy.TakeDamage(_field.Player.Attack);
+        GameMessage = $"Hit {enemy.Name}! (−{selfDamage} HP to you)";
+
+        if (!enemy.IsAlive)
         {
-            int selfDamage = _field.Player.Hp / 2;
-            _field.Player.TakeDamage(selfDamage);
-            enemy.TakeDamage(_field.Player.Attack);
+            _field.RemoveEnemy(enemy);
+            GameMessage = $"{enemy.Name} defeated! (−{selfDamage} HP to you)";
+        }
 
-            GameMessage = $"Hit {enemy.Name}! (−{selfDamage} HP to you)";
-
-            if (!enemy.IsAlive)
-            {
-                _field.RemoveEnemy(enemy);
-                GameMessage = $"{enemy.Name} defeated! (−{selfDamage} HP to you)";
-            }
-
-            if (_field.Player.Hp <= 0)
-            {
-                IsGameOver = true;
-                GameMessage = "You have fallen in battle...";
-                Render();
-                UpdateStats();
-                return;
-            }
-
+        if (!PlayerIsDead())
             MoveEnemies();
-            Render();
-            UpdateStats();
-            return;
-        }
 
-        var item = _field.Items.FirstOrDefault(i => i.X == newX && i.Y == newY);
-        if (item != null)
+        return true;
+    }
+
+    private void PickUpItemAt(int x, int y)
+    {
+        var item = _field.Items.FirstOrDefault(i => i.X == x && i.Y == y);
+        if (item == null) return;
+
+        item.Apply(_field.Player);
+        _field.RemoveItem(item);
+        GameMessage = $"Picked up {item.Name}!";
+    }
+
+    private bool TryTakeExit(GameElement target)
+    {
+        if (target is not Exit) return false;
+
+        if (_currentLevel >= TotalLevels)
         {
-            item.Apply(_field.Player);
-            _field.RemoveItem(item);
-            GameMessage = $"Picked up {item.Name}!";
+            IsVictory = true;
+            IsGameOver = true;
+            GameMessage = "Victory! The Shadow Maiden conquers the dungeon!";
+            return true;
         }
 
-        if (target is Exit)
-        {
-            if (_currentLevel >= TotalLevels)
-            {
-                IsVictory = true;
-                IsGameOver = true;
-                GameMessage = "Victory! The Shadow Maiden conquers the dungeon!";
-                Render();
-                UpdateStats();
-                return;
-            }
+        int hp = _field.Player.Hp;
+        int attack = _field.Player.Attack;
+        int keys = _field.Player.Keys;
+        _currentLevel++;
+        LoadLevel(_currentLevel);
+        _field.Player.Hp = hp;
+        _field.Player.Attack = attack;
+        _field.Player.Keys = keys;
+        return true;
+    }
 
-            int hp = _field.Player.Hp;
-            int attack = _field.Player.Attack;
-            int keys = _field.Player.Keys;
-            _currentLevel++;
-            LoadLevel(_currentLevel);
-            _field.Player.Hp = hp;
-            _field.Player.Attack = attack;
-            _field.Player.Keys = keys;
-            UpdateStats();
-            return;
-        }
-
+    private void StepPlayer(int newX, int newY)
+    {
         _field[_field.Player.X, _field.Player.Y] = new Floor(_field.Player.X, _field.Player.Y);
         _field.Player.X = newX;
         _field.Player.Y = newY;
-
-        MoveEnemies();
-        Render();
-        UpdateStats();
     }
 
     private void MoveEnemies()
@@ -198,55 +209,50 @@ public class GameViewModel : BaseViewModel
             if (!enemy.IsAlive)
                 continue;
 
-            var (pdx, pdy) = enemy.GetMove(_field.Player);
-
-            var dirs = new System.Collections.Generic.List<(int, int)> { (pdx, pdy) };
-            if (pdx != 0)
-            {
-                dirs.Add((0, 1));
-                dirs.Add((0, -1));
-            }
-            else if (pdy != 0)
-            {
-                dirs.Add((1, 0));
-                dirs.Add((-1, 0));
-            }
-
-            foreach (var (dx, dy) in dirs)
+            foreach (var (dx, dy) in enemy.GetMoveCandidates(_field.Player))
             {
                 int nx = enemy.X + dx;
                 int ny = enemy.Y + dy;
 
                 if (nx == _field.Player.X && ny == _field.Player.Y)
                 {
-                    _field.Player.TakeDamage(enemy.Attack);
-                    GameMessage = $"{enemy.Name} attacks! (−{enemy.Attack} HP)";
-                    if (_field.Player.Hp <= 0)
-                    {
-                        IsGameOver = true;
-                        GameMessage = "You have fallen in battle...";
-                        return;
-                    }
-
+                    EnemyAttackPlayer(enemy);
                     break;
                 }
 
-                if (CanEnemyMoveTo(enemy, nx, ny))
+                if (enemy.CanMoveTo(_field, nx, ny))
                 {
                     enemy.X = nx;
                     enemy.Y = ny;
                     break;
                 }
             }
+
+            if (_isGameOver)
+                return;
         }
     }
 
-    private bool CanEnemyMoveTo(Enemy enemy, int nx, int ny)
+    private void EnemyAttackPlayer(Enemy enemy)
     {
-        if (nx < 0 || nx >= _field.Width || ny < 0 || ny >= _field.Height) return false;
-        if (_field.Enemies.Exists(e => e != enemy && e.X == nx && e.Y == ny)) return false;
-        if (enemy.CanFly) return true;
-        return _field[nx, ny] is { IsPassable: true };
+        _field.Player.TakeDamage(enemy.Attack);
+        GameMessage = $"{enemy.Name} attacks! (−{enemy.Attack} HP)";
+        PlayerIsDead();
+    }
+
+    private bool PlayerIsDead()
+    {
+        if (_field.Player.Hp > 0) return false;
+
+        IsGameOver = true;
+        GameMessage = "You have fallen in battle...";
+        return true;
+    }
+
+    private void Refresh()
+    {
+        Render();
+        UpdateStats();
     }
 
     private void Render()

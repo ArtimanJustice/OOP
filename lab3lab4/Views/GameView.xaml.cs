@@ -20,19 +20,19 @@ public partial class GameView
         switch (e.Key) {
             case W:
             case Up:
-                vm.MoveUpCommand.Execute(null);
+                vm.MoveCommand.Execute(Direction.Up);
                 break;
             case S:
             case Down:
-                vm.MoveDownCommand.Execute(null);
+                vm.MoveCommand.Execute(Direction.Down);
                 break;
             case A:
             case Key.Left:
-                vm.MoveLeftCommand.Execute(null);
+                vm.MoveCommand.Execute(Direction.Left);
                 break;
             case D:
             case Right:
-                vm.MoveRightCommand.Execute(null);
+                vm.MoveCommand.Execute(Direction.Right);
                 break;
             case R:
                 vm.RestartCommand.Execute(null);
