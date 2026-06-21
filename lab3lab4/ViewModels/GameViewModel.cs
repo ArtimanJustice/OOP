@@ -14,7 +14,6 @@ public class GameViewModel : BaseViewModel
     private bool _isGameOver;
     private bool _isVictory;
 
-    public const int TotalLevels = 6;
     private const int PresetLevels = 3;
 
     public ObservableCollection<CellInfo> Cells { get; } = [];
@@ -27,7 +26,7 @@ public class GameViewModel : BaseViewModel
     public int PlayerAttack => _field?.Player?.Attack ?? 0;
     public int PlayerKeys => _field?.Player?.Keys ?? 0;
     public int CurrentLevel => _currentLevel;
-    public string LevelDisplay => $"{_currentLevel} / {TotalLevels}";
+    public string LevelDisplay => $"{_currentLevel}";
 
     public string GameMessage
     {
@@ -69,7 +68,7 @@ public class GameViewModel : BaseViewModel
     {
         _field = level <= PresetLevels
             ? LevelLoader.Load(level)
-            : LevelGenerator.Generate(level, TotalLevels);
+            : LevelGenerator.Generate(level);
         OnPropertyChanged(nameof(FieldWidth));
         OnPropertyChanged(nameof(FieldHeight));
         InitializeCells();
@@ -175,14 +174,6 @@ public class GameViewModel : BaseViewModel
     private bool TryTakeExit(GameElement target)
     {
         if (target is not Exit) return false;
-
-        if (_currentLevel >= TotalLevels)
-        {
-            IsVictory = true;
-            IsGameOver = true;
-            GameMessage = "Victory! The Shadow Maiden conquers the dungeon!";
-            return true;
-        }
 
         int hp = _field.Player.Hp;
         int attack = _field.Player.Attack;

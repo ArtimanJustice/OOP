@@ -8,16 +8,16 @@ public static class LevelGenerator
 {
     private static readonly Random Rng = new();
 
-    public static GameField Generate(int level, int totalLevels)
+    public static GameField Generate(int level)
     {
-        int difficulty = Math.Max(1, level - 3);
+        int difficulty = Math.Min(6, Math.Max(1, level - 3));
 
         int width = Rng.Next(18, 26);
         int height = Rng.Next(11, 16);
 
         var grid = BuildLayout(width, height);
         var reachable = FloodFill(grid);
-        Populate(grid, reachable, difficulty, isFinalLevel: level >= totalLevels);
+        Populate(grid, reachable, difficulty, spawnBoss: level % 3 == 0);
 
         return LevelLoader.Build(ToLines(grid));
     }
@@ -90,7 +90,7 @@ public static class LevelGenerator
         return visited;
     }
 
-    private static void Populate(char[,] grid, bool[,] reachable, int difficulty, bool isFinalLevel)
+    private static void Populate(char[,] grid, bool[,] reachable, int difficulty, bool spawnBoss)
     {
         int height = grid.GetLength(0);
         int width = grid.GetLength(1);
@@ -113,7 +113,7 @@ public static class LevelGenerator
 
         for (var i = 0; i < skeletons; i++) Place(grid, free, 'S', FarFromStart);
         for (var i = 0; i < bats; i++) Place(grid, free, 'B', FarFromStart);
-        if (isFinalLevel) Place(grid, free, 'X', FarFromStart);
+        if (spawnBoss) Place(grid, free, 'X', FarFromStart);
 
         Place(grid, free, 's', _ => true);
         for (var i = 0; i < potions; i++) Place(grid, free, 'p', _ => true);
