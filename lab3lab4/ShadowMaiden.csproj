@@ -4,6 +4,7 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <RootNamespace>ShadowMaiden</RootNamespace>
+    <StartupObject>ShadowMaiden.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Levels\*.txt">
