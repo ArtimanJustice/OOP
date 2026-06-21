@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ShadowMaiden.Models;
 
@@ -30,22 +31,8 @@ public abstract class Enemy(int x, int y, ElementType type, int hp, int attack, 
 
     protected IEnumerable<(int dx, int dy)> ChaseCandidates(Player player)
     {
-        int dx = 0, dy = 0;
-        if (Math.Abs(player.X - X) > Math.Abs(player.Y - Y))
-            dx = player.X > X ? 1 : -1;
-        else
-            dy = player.Y > Y ? 1 : -1;
-
-        yield return (dx, dy);
-        if (dx != 0)
-        {
-            yield return (0, 1);
-            yield return (0, -1);
-        }
-        else
-        {
-            yield return (1, 0);
-            yield return (-1, 0);
-        }
+        (int dx, int dy)[] directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+        return directions.OrderBy(d =>
+            Math.Abs(player.X - (X + d.dx)) + Math.Abs(player.Y - (Y + d.dy)));
     }
 }
